@@ -58,8 +58,23 @@ Yamaha.prototype.discover = function(timeout) {
             }
         }).start();
     })
-
 };
+Yamaha.prototype.buildPutXml = function(nodes,body){
+    return '<YAMAHA_AV cmd="PUT">' + buildXml(nodes,body) + '</YAMAHA_AV>';
+}
+Yamaha.prototype.buildGetXml = function(nodes,body){
+    return '<YAMAHA_AV cmd="GET">' + buildXml(nodes,body) + '</YAMAHA_AV>';
+}
+
+function buildXml(nodes, body){
+    if(nodes.length == 0){
+        return body;
+    }
+    else{
+        var current = nodes[0]
+        return "<" + current + ">" + buildXml(nodes.slice(1),body) + "</" + current + ">";
+    }
+}
 
 function getZone(zone) {
     if (!zone) return "Main_Zone";
@@ -245,6 +260,24 @@ Yamaha.prototype.setDialogLevelTo = function(to) {
     var command = '<YAMAHA_AV cmd="PUT"><' + zone + '><Sound_Video><Dialogue_Adjust><Dialogue_Lvl>' + to + '</Dialogue_Lvl></Dialogue_Adjust></Sound_Video></' + zone + '></YAMAHA_AV>';
     return this.SendXMLToReceiver(command);
 };
+
+Yamaha.prototype.setSurroundTo = function(to){
+    var zone = getZone(); //only available in Main Zone
+    var command = buildSetSurroundCommand(zone,to);
+    return this.SendXMLToReceiver(command);
+}
+
+function buildSetSurroundCommand(zone,to){
+    var path =[zone,"Surround","Program_Sel","Current"];
+    var body = null;
+    if(to == "Straight"){
+        body = "<Straight>On</Straight>";
+    } else{
+        body = "<Straight>Off</Straight><Sound_Program>" + to + "</Sound_Program>";
+    }
+    return Yamaha.prototype.buildPutXml(path,body);
+}
+
 
 Yamaha.prototype.YPAOVolumeOn = function() {
     var zone = getZone(); //only available in Main Zone
@@ -483,6 +516,19 @@ Yamaha.prototype.getAvailableInputs = function() {
         return inputs;
     });
 };
+
+Yamaha.prototype.getSurround = function() {
+    var zone = getZone();
+    var command = this.buildGetXml([zone,"Surround","Program_Sel","Current"],"GetParam");
+    return this.SendXMLToReceiver(command).then(xml2js.parseStringAsync).then(info =>{
+        var sound = info.YAMAHA_AV[zone][0].Surround[0].Program_Sel[0].Current[0];
+        if ( sound.Straight[0] == 'On' ){
+            return "Straight";
+        } else{
+            return sound.Sound_Program[0];
+        }
+    });
+}
 
 Yamaha.prototype.selectListItem = function(listname, number) {
     var command = '<YAMAHA_AV cmd="PUT"><' + listname + '><List_Control><Direct_Sel>Line_' + number + '</Direct_Sel></List_Control></' + listname + '></YAMAHA_AV>';

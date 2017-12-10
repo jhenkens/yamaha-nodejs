@@ -125,6 +125,36 @@ yamaha.getZoneConfig(zone)
 
 ```
 
+## Surround Modes
+```
+Straight
+Hall in Munich
+Hall in Vienna
+Hall in Amsterdam
+Church in Freiburg
+Church in Royaumont
+Chamber
+Village Vanguard
+Warehouse Loft
+Cellar Club
+The Roxy Theatre
+The Bottom Line
+Sports
+Action Game
+Roleplaying Game
+Music Video
+Recital/Opera
+Standard
+Spectacle
+Sci-Fi
+Adventure
+Drama
+Mono Movie
+2ch Stereo
+7ch Stereo
+Surround Decoder
+```
+
 #### Zones
 The zone parameter is optional, you can pass a number or a string
 
